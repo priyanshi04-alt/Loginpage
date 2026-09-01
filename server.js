@@ -8,7 +8,7 @@ const { initDB, findUserByEmail, findUserById, createUser } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'pulse_secret_auth_token_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'nexus_secret_auth_token_key_2026';
 
 // Middleware
 app.use(cors());
@@ -63,7 +63,7 @@ app.post('/api/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await createUser({ username, email, password: hashedPassword });
 
-    const token = jwt.sign({ id: newUser.id, email: newUser.email }, JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: newUser.id, email: newUser.email }, JWT_SECRET, { expiresIn: '30d' });
 
     res.status(201).json({
       success: true,
@@ -80,7 +80,7 @@ app.post('/api/register', async (req, res) => {
 // User Login Route
 app.post('/api/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Email and password are required.' });
@@ -96,13 +96,16 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '24h' });
+    // Set token expiration: 30 days if rememberMe is checked, otherwise 24 hours
+    const expiresIn = rememberMe ? '30d' : '24h';
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn });
 
     res.status(200).json({
       success: true,
       message: 'Login successful!',
       user: { id: user.id, username: user.username, email: user.email },
-      token
+      token,
+      expiresIn
     });
   } catch (error) {
     console.error('Login Error:', error);
@@ -127,7 +130,7 @@ app.get('/api/me', authenticateToken, async (req, res) => {
 initDB().then(() => {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`==================================================`);
-    console.log(`🚀 Pulse Application Server is running!`);
+    console.log(`🚀 Nexus Application Server is running!`);
     console.log(`📡 URL: http://localhost:${PORT}`);
     console.log(`==================================================`);
   });

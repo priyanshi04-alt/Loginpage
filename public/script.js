@@ -94,14 +94,6 @@ function hideBanner() {
   alertBanner.classList.add('hidden');
 }
 
-// Social Authentication Handler
-function handleSocialAuth(provider) {
-  showBanner(`Connecting to ${provider}...`, 'success');
-  setTimeout(() => {
-    showBanner(`OAuth login with ${provider} initialized. Please complete in browser.`, 'error');
-  }, 1000);
-}
-
 // Forgot Password Modal
 function openForgotModal(e) {
   if (e) e.preventDefault();
@@ -126,6 +118,7 @@ async function onLoginSubmit(event) {
 
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
+  const rememberMe = document.getElementById('remember-me').checked;
   const submitBtn = document.getElementById('login-submit-btn');
 
   if (!email || !password) {
@@ -140,7 +133,7 @@ async function onLoginSubmit(event) {
     const res = await fetch(`${API_BASE}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, rememberMe })
     });
 
     const data = await res.json();
@@ -207,7 +200,7 @@ async function onRegisterSubmit(event) {
     showBanner('Server error during registration.');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.innerHTML = '<span>Create free account</span><i class="fa-solid fa-user-plus text-xs"></i>';
+    submitBtn.innerHTML = '<span>Create account</span><i class="fa-solid fa-user-plus text-xs"></i>';
   }
 }
 
