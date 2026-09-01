@@ -1,205 +1,254 @@
-// API Endpoints
 const API_BASE = window.location.origin;
 
 // DOM Elements
 const authCard = document.getElementById('auth-card');
-const dashboardCard = document.getElementById('dashboard-card');
+const dashboardView = document.getElementById('dashboard-view');
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
-const tabLogin = document.getElementById('tab-login');
-const tabRegister = document.getElementById('tab-register');
-const headerTitle = document.getElementById('header-title');
-const headerSubtitle = document.getElementById('header-subtitle');
-const alertBox = document.getElementById('alert-box');
-const alertIcon = document.getElementById('alert-icon');
-const alertMessage = document.getElementById('alert-message');
+const btnLoginTab = document.getElementById('btn-login-tab');
+const btnRegTab = document.getElementById('btn-reg-tab');
+const formTitle = document.getElementById('form-title');
+const formSubtitle = document.getElementById('form-subtitle');
+const alertBanner = document.getElementById('alert-banner');
+const alertText = document.getElementById('alert-text');
+const forgotModal = document.getElementById('forgot-modal');
 
-// On Page Load: Check authentication
+// Check active session on load
 document.addEventListener('DOMContentLoaded', () => {
   checkExistingSession();
-  fetchServerHealth();
 });
 
-// Tab Switcher Function
-function switchTab(tab) {
-  hideAlert();
+// Switch Tab
+function switchAuthTab(tab) {
+  hideBanner();
   if (tab === 'login') {
-    tabLogin.classList.add('active');
-    tabRegister.classList.remove('active');
+    btnLoginTab.classList.add('active');
+    btnRegTab.classList.remove('active');
     loginForm.classList.remove('hidden');
     registerForm.classList.add('hidden');
-    headerTitle.textContent = 'Welcome Back';
-    headerSubtitle.textContent = 'Sign in to access your secure DevOps dashboard';
+    formTitle.textContent = 'Welcome back';
+    formSubtitle.textContent = 'Enter your details to access your workspace';
   } else {
-    tabRegister.classList.add('active');
-    tabLogin.classList.remove('active');
+    btnRegTab.classList.add('active');
+    btnLoginTab.classList.remove('active');
     registerForm.classList.remove('hidden');
     loginForm.classList.add('hidden');
-    headerTitle.textContent = 'Create Account';
-    headerSubtitle.textContent = 'Register to join the DevOps demonstration portal';
+    formTitle.textContent = 'Create an account';
+    formSubtitle.textContent = 'Start your 14-day free trial, no credit card required';
   }
 }
 
 // Password Visibility Toggle
-function togglePassword(inputId, btn) {
+function togglePassVisibility(inputId, btn) {
   const input = document.getElementById(inputId);
   const icon = btn.querySelector('i');
   if (input.type === 'password') {
     input.type = 'text';
-    icon.className = 'fa-solid fa-eye-slash';
+    icon.className = 'fa-regular fa-eye-slash';
   } else {
     input.type = 'password';
-    icon.className = 'fa-solid fa-eye';
+    icon.className = 'fa-regular fa-eye';
   }
 }
 
-// Show Alert Notification
-function showAlert(message, type = 'error') {
-  alertBox.className = `alert ${type}`;
-  alertMessage.textContent = message;
-  alertIcon.className = type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation';
-  alertBox.classList.remove('hidden');
+// Password Strength Meter
+function checkPasswordStrength(val) {
+  const bar = document.getElementById('strength-bar');
+  const label = document.getElementById('strength-label');
+  if (!val) {
+    bar.style.width = '0%';
+    label.textContent = '';
+    return;
+  }
+
+  let score = 0;
+  if (val.length >= 6) score += 25;
+  if (val.length >= 10) score += 25;
+  if (/[A-Z]/.test(val)) score += 25;
+  if (/[0-9!@#$%^&*]/.test(val)) score += 25;
+
+  bar.style.width = `${score}%`;
+  if (score <= 25) {
+    bar.style.backgroundColor = '#f43f5e';
+    label.textContent = 'Weak password';
+    label.style.color = '#fb7185';
+  } else if (score <= 75) {
+    bar.style.backgroundColor = '#f59e0b';
+    label.textContent = 'Medium strength';
+    label.style.color = '#fbbf24';
+  } else {
+    bar.style.backgroundColor = '#10b981';
+    label.textContent = 'Strong password';
+    label.style.color = '#34d399';
+  }
 }
 
-// Hide Alert
-function hideAlert() {
-  alertBox.classList.add('hidden');
+// Alert Notification Banner
+function showBanner(message, type = 'error') {
+  alertBanner.className = `alert-banner ${type}`;
+  alertText.textContent = message;
+  alertBanner.classList.remove('hidden');
 }
 
-// Handle Login Submission
-async function handleLogin(event) {
+function hideBanner() {
+  alertBanner.classList.add('hidden');
+}
+
+// Social Authentication Handler
+function handleSocialAuth(provider) {
+  showBanner(`Connecting to ${provider}...`, 'success');
+  setTimeout(() => {
+    showBanner(`OAuth login with ${provider} initialized. Please complete in browser.`, 'error');
+  }, 1000);
+}
+
+// Forgot Password Modal
+function openForgotModal(e) {
+  if (e) e.preventDefault();
+  forgotModal.classList.remove('hidden');
+}
+
+function closeForgotModal() {
+  forgotModal.classList.add('hidden');
+}
+
+function handleResetRequest(e) {
+  e.preventDefault();
+  const email = document.getElementById('reset-email').value;
+  closeForgotModal();
+  showBanner(`Password reset instructions sent to ${email}`, 'success');
+}
+
+// Login Submission
+async function onLoginSubmit(event) {
   event.preventDefault();
-  hideAlert();
+  hideBanner();
 
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
-  const loginBtn = document.getElementById('login-btn');
+  const submitBtn = document.getElementById('login-submit-btn');
+
+  if (!email || !password) {
+    showBanner('Please fill in all fields.');
+    return;
+  }
 
   try {
-    loginBtn.disabled = true;
-    loginBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sign in...';
 
-    const response = await fetch(`${API_BASE}/api/login`, {
+    const res = await fetch(`${API_BASE}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    if (response.ok && data.success) {
-      localStorage.setItem('devops_token', data.token);
-      showAlert('Login successful! Redirecting...', 'success');
+    if (res.ok && data.success) {
+      localStorage.setItem('auth_token', data.token);
+      showBanner('Welcome back! Redirecting...', 'success');
       setTimeout(() => {
-        showDashboard(data.user);
-      }, 800);
+        renderDashboard(data.user);
+      }, 600);
     } else {
-      showAlert(data.message || 'Invalid credentials.');
+      showBanner(data.message || 'Invalid email or password.');
     }
-  } catch (error) {
-    showAlert('Unable to connect to backend server.');
+  } catch (err) {
+    showBanner('Unable to connect to server.');
   } finally {
-    loginBtn.disabled = false;
-    loginBtn.innerHTML = '<span>Sign In</span><i class="fa-solid fa-arrow-right"></i>';
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<span>Sign in to account</span><i class="fa-solid fa-arrow-right text-xs"></i>';
   }
 }
 
-// Handle Register Submission
-async function handleRegister(event) {
+// Register Submission
+async function onRegisterSubmit(event) {
   event.preventDefault();
-  hideAlert();
+  hideBanner();
 
-  const username = document.getElementById('reg-username').value.trim();
+  const name = document.getElementById('reg-name').value.trim();
   const email = document.getElementById('reg-email').value.trim();
   const password = document.getElementById('reg-password').value;
-  const regBtn = document.getElementById('register-btn');
+  const submitBtn = document.getElementById('reg-submit-btn');
+
+  if (!name || !email || !password) {
+    showBanner('Please fill in all required fields.');
+    return;
+  }
+
+  if (password.length < 6) {
+    showBanner('Password must be at least 6 characters.');
+    return;
+  }
 
   try {
-    regBtn.disabled = true;
-    regBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating Account...';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating account...';
 
-    const response = await fetch(`${API_BASE}/api/register`, {
+    const res = await fetch(`${API_BASE}/api/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password })
+      body: JSON.stringify({ username: name, email, password })
     });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    if (response.ok && data.success) {
-      localStorage.setItem('devops_token', data.token);
-      showAlert('Account registered successfully!', 'success');
+    if (res.ok && data.success) {
+      localStorage.setItem('auth_token', data.token);
+      showBanner('Account created successfully!', 'success');
       setTimeout(() => {
-        showDashboard(data.user);
-      }, 800);
+        renderDashboard(data.user);
+      }, 600);
     } else {
-      showAlert(data.message || 'Registration failed.');
+      showBanner(data.message || 'Registration failed.');
     }
-  } catch (error) {
-    showAlert('Server error during registration.');
+  } catch (err) {
+    showBanner('Server error during registration.');
   } finally {
-    regBtn.disabled = false;
-    regBtn.innerHTML = '<span>Create Account</span><i class="fa-solid fa-user-check"></i>';
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<span>Create free account</span><i class="fa-solid fa-user-plus text-xs"></i>';
   }
 }
 
-// Check Existing Token
+// Session Check
 async function checkExistingSession() {
-  const token = localStorage.getItem('devops_token');
+  const token = localStorage.getItem('auth_token');
   if (!token) return;
 
   try {
-    const response = await fetch(`${API_BASE}/api/me`, {
+    const res = await fetch(`${API_BASE}/api/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const data = await response.json();
+    const data = await res.json();
 
-    if (response.ok && data.success) {
-      showDashboard(data.user);
+    if (res.ok && data.success) {
+      renderDashboard(data.user);
     } else {
-      localStorage.removeItem('devops_token');
+      localStorage.removeItem('auth_token');
     }
   } catch (err) {
-    console.error('Session validation error:', err);
+    console.error('Session check failed:', err);
   }
 }
 
-// Display Dashboard view
-function showDashboard(user) {
+// Render Dashboard
+function renderDashboard(user) {
   authCard.classList.add('hidden');
-  dashboardCard.classList.remove('hidden');
-  headerTitle.textContent = `Welcome, ${user.username}!`;
-  headerSubtitle.textContent = 'AWS DevOps Authentication Session Active';
+  dashboardView.classList.remove('hidden');
 
-  document.getElementById('user-display-name').textContent = user.username;
-  document.getElementById('user-display-email').textContent = user.email;
-  hideAlert();
+  const initials = user.username.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'US';
+  document.getElementById('avatar-initials').textContent = initials;
+  document.getElementById('dash-user-name').textContent = user.username;
+  document.getElementById('dash-user-email').textContent = user.email;
+  hideBanner();
 }
 
-// Handle Logout
+// Logout
 function handleLogout() {
-  localStorage.removeItem('devops_token');
-  dashboardCard.classList.add('hidden');
+  localStorage.removeItem('auth_token');
+  dashboardView.classList.add('hidden');
   authCard.classList.remove('hidden');
-  switchTab('login');
-  showAlert('Signed out successfully.', 'success');
-}
-
-// Fetch Health Endpoint
-async function fetchServerHealth() {
-  const healthBadge = document.getElementById('health-status');
-  try {
-    const response = await fetch(`${API_BASE}/health`);
-    const data = await response.json();
-    if (response.ok && data.status === 'UP') {
-      healthBadge.className = 'status-value success';
-      healthBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> UP (${data.environment})`;
-    } else {
-      healthBadge.className = 'status-value error';
-      healthBadge.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Down`;
-    }
-  } catch (err) {
-    healthBadge.className = 'status-value error';
-    healthBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Unreachable`;
-  }
+  switchAuthTab('login');
+  showBanner('Signed out successfully.', 'success');
 }

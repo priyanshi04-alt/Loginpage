@@ -8,18 +8,17 @@ const { initDB, findUserByEmail, findUserById, createUser } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_devops_2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'pulse_secret_auth_token_key_2026';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Health check endpoint (for AWS EC2 / Load Balancer / CI/CD pipeline checks)
+// Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'UP',
-    uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
   });
@@ -36,7 +35,7 @@ function authenticateToken(req, res, next) {
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) {
-      return res.status(403).json({ success: false, message: 'Invalid or expired token' });
+      return res.status(403).json({ success: false, message: 'Invalid or expired session token' });
     }
     req.user = user;
     next();
@@ -49,7 +48,7 @@ app.post('/api/register', async (req, res) => {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
-      return res.status(400).json({ success: false, message: 'All fields (username, email, password) are required.' });
+      return res.status(400).json({ success: false, message: 'All fields are required.' });
     }
 
     if (password.length < 6) {
@@ -58,7 +57,7 @@ app.post('/api/register', async (req, res) => {
 
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      return res.status(409).json({ success: false, message: 'User with this email already exists.' });
+      return res.status(409).json({ success: false, message: 'An account with this email already exists.' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -68,7 +67,7 @@ app.post('/api/register', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully!',
+      message: 'Account created successfully!',
       user: { id: newUser.id, username: newUser.username, email: newUser.email },
       token
     });
@@ -116,7 +115,7 @@ app.get('/api/me', authenticateToken, async (req, res) => {
   try {
     const user = await findUserById(req.user.id);
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(404).json({ success: false, message: 'User profile not found.' });
     }
     res.status(200).json({ success: true, user });
   } catch (error) {
@@ -128,13 +127,12 @@ app.get('/api/me', authenticateToken, async (req, res) => {
 initDB().then(() => {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`==================================================`);
-    console.log(`🚀 DevOps AWS Demo App is running!`);
+    console.log(`🚀 Pulse Application Server is running!`);
     console.log(`📡 URL: http://localhost:${PORT}`);
-    console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
     console.log(`==================================================`);
   });
 }).catch((err) => {
-  console.error('Failed to start server due to DB initialization error:', err);
+  console.error('Failed to start server due to DB error:', err);
 });
 
 module.exports = app;
