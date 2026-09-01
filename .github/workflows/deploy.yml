@@ -36,19 +36,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy Application to EC2
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-          script: |
+      - name: Add EC2 Host to Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy Application over SSH
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
 
             echo "🚀 Starting deployment..."
 
-            # Clone repository first time
+            # Clone repository first time or pull latest
             if [ ! -d "$HOME/app/.git" ]; then
               rm -rf "$HOME/app"
               git clone https://github.com/priyanshi04-alt/Loginpage.git "$HOME/app"
@@ -61,7 +66,6 @@ jobs:
             cd "$HOME/app"
 
             echo "📦 Building and starting Docker container..."
-
             docker compose down || true
             docker compose up -d --build
 
@@ -69,3 +73,4 @@ jobs:
             docker compose ps
 
             echo "✅ Deployment completed successfully!"
+          EOF
