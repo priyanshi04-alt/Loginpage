@@ -7,7 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Job 1: Build & Verify Code
+
+  # Job 1: Build & Verify
   build-and-test:
     name: Build & Verify
     runs-on: ubuntu-latest
@@ -20,49 +21,51 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install Dependencies
         run: npm ci
 
-      - name: Verify Health Check & Code Structure
+      - name: Verify Code
         run: node -e "console.log('✅ Code validation passed!')"
 
-  # Job 2: Deploy to AWS EC2 Instance via SSH & Docker
+  # Job 2: Deploy to AWS EC2
   deploy-to-aws:
     name: Deploy to AWS EC2
     needs: build-and-test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploying application to AWS EC2
+      - name: Deploy Application to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+
           script: |
-            echo "🚀 Deployment Started on AWS EC2..."
-            
-            # Navigate to application directory (create if not exists)
-            mkdir -p ~/app
-            cd ~/app
-            
-            # Pull latest changes if git repository exists, or clone
-            if [ -d ".git" ]; then
-              git pull origin main
+            set -e
+
+            echo "🚀 Starting deployment..."
+
+            # Clone repository first time
+            if [ ! -d "$HOME/app/.git" ]; then
+              rm -rf "$HOME/app"
+              git clone https://github.com/priyanshi04-alt/Loginpage.git "$HOME/app"
             else
-              echo "⚠️ Git repository not found on EC2, please clone it manually once or upload files."
+              cd "$HOME/app"
+              git fetch origin
+              git reset --hard origin/main
             fi
 
-            # Build and restart Docker container
-            if command -v docker-compose &> /dev/null; then
-              docker-compose down
-              docker-compose up -d --build
-            elif command -v docker &> /dev/null; then
-              docker stop devops-login-app || true
-              docker rm devops-login-app || true
-              docker build -t devops-login-app .
-              docker run -d --name devops-login-app -p 80:3000 --restart always devops-login-app
-            fi
+            cd "$HOME/app"
 
-            echo "✅ Deployment finished successfully! App running on port 80."
+            echo "📦 Building and starting Docker container..."
+
+            docker compose down || true
+            docker compose up -d --build
+
+            echo "📊 Container status:"
+            docker compose ps
+
+            echo "✅ Deployment completed successfully!"
