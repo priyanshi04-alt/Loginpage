@@ -390,6 +390,11 @@ input:focus, .select-input:focus {
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
+.admin-avatar {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
 .user-info {
   flex: 1;
 }
@@ -414,12 +419,21 @@ input:focus, .select-input:focus {
   font-weight: 600;
 }
 
+.admin-pill {
+  color: #c084fc;
+}
+
 .status-pill .dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: #10b981;
   box-shadow: 0 0 8px #10b981;
+}
+
+.admin-pill .dot {
+  background: #a855f7;
+  box-shadow: 0 0 8px #a855f7;
 }
 
 .logout-link-btn {
@@ -439,6 +453,63 @@ input:focus, .select-input:focus {
 .logout-link-btn:hover {
   background: rgba(244, 63, 94, 0.25);
   color: #fff;
+}
+
+/* PLATFORM WORKSPACE DASHBOARD */
+.platform-workspace-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workspace-card {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.ws-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.ws-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.platform-quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.action-tile {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  padding: 14px 10px;
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-tile:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateY(-2px);
 }
 
 /* ADMIN PANEL SECTION */

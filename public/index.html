@@ -26,11 +26,11 @@
       <span class="brand-name">nexus</span>
     </div>
 
-    <!-- Main Auth Card -->
+    <!-- Auth Card (Login / Register) -->
     <div id="auth-card" class="auth-card">
       <div class="card-header">
         <h1 id="form-title">Welcome back</h1>
-        <p id="form-subtitle">Enter your credentials to access your account</p>
+        <p id="form-subtitle">Enter your credentials to access your workspace</p>
       </div>
 
       <!-- Segmented Tab Bar -->
@@ -116,25 +116,62 @@
       </form>
     </div>
 
-    <!-- LOGGED-IN DASHBOARD VIEW WITH ADMIN PANEL -->
-    <div id="dashboard-view" class="auth-card dashboard-card hidden">
+    <!-- NORMAL USER PLATFORM DASHBOARD -->
+    <div id="user-dashboard-view" class="auth-card hidden">
       <div class="user-profile-header">
-        <div class="avatar-large" id="avatar-initials">US</div>
+        <div class="avatar-large" id="user-avatar-initials">US</div>
         <div class="user-info">
-          <h2 id="dash-user-name">User Name</h2>
-          <p id="dash-user-email">user@example.com</p>
-          <span class="status-pill"><span class="dot"></span> Signed In</span>
+          <h2 id="user-dash-name">User Name</h2>
+          <p id="user-dash-email">user@example.com</p>
+          <span class="status-pill"><span class="dot"></span> Active Member</span>
         </div>
         <button type="button" class="logout-link-btn" onclick="handleLogout()" title="Sign Out">
           <i class="fa-solid fa-right-from-bracket"></i>
         </button>
       </div>
 
-      <!-- Admin Panel Section -->
+      <!-- Platform Workspace Overview -->
+      <div class="platform-workspace-section">
+        <div class="workspace-card">
+          <div class="ws-header">
+            <i class="fa-solid fa-layer-group text-indigo-400"></i>
+            <span>Nexus Cloud Platform</span>
+          </div>
+          <p class="ws-desc">Your team workspace is active and synchronized.</p>
+        </div>
+
+        <div class="platform-quick-actions mt-3">
+          <button type="button" class="action-tile" onclick="alert('Workspace Launched!')">
+            <i class="fa-solid fa-[#6366f1] fa-rocket"></i>
+            <span>Launch Workspace</span>
+          </button>
+          <button type="button" class="action-tile" onclick="alert('Settings opened.')">
+            <i class="fa-solid fa-gear"></i>
+            <span>Account Settings</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEDICATED ADMIN CONSOLE DASHBOARD -->
+    <div id="admin-dashboard-view" class="auth-card dashboard-card hidden">
+      <div class="user-profile-header">
+        <div class="avatar-large admin-avatar" id="admin-avatar-initials">AD</div>
+        <div class="user-info">
+          <h2 id="admin-dash-name">Nexus Admin</h2>
+          <p id="admin-dash-email">admin@nexus.com</p>
+          <span class="status-pill admin-pill"><span class="dot"></span> SYSTEM ADMIN</span>
+        </div>
+        <button type="button" class="logout-link-btn" onclick="handleLogout()" title="Sign Out">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+
+      <!-- Admin Management Console -->
       <div class="admin-panel-section">
         <div class="admin-header">
           <div class="admin-title">
-            <h3><i class="fa-solid fa-users-gear text-indigo-400"></i> Admin Console</h3>
+            <h3><i class="fa-solid fa-users-gear text-indigo-400"></i> Registered Users</h3>
             <span class="badge-count" id="total-user-count">0 Users</span>
           </div>
           <button type="button" class="btn-add-user" onclick="openAddUserModal()">

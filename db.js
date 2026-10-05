@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcryptjs');
 
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'data', 'users.db');
 
@@ -19,41 +20,57 @@ try {
   console.log('⚠️ Native node:sqlite not available, falling back to persistent JSON database.');
 }
 
-// Initialize database schema
-function initDB() {
-  return new Promise((resolve, reject) => {
-    try {
-      if (dbInstance) {
-        dbInstance.exec(`
-          CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL,
-            role TEXT DEFAULT 'user',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-          );
-        `);
+// Initialize database schema and seed default Admin account
+async function initDB() {
+  try {
+    if (dbInstance) {
+      dbInstance.exec(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL,
+          email TEXT NOT NULL UNIQUE,
+          password TEXT NOT NULL,
+          role TEXT DEFAULT 'user',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
 
-        // Migration check for role column
-        try {
-          dbInstance.exec(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user';`);
-        } catch (e) {
-          // Column already exists
-        }
-      } else {
-        const jsonPath = dbPath + '.json';
-        if (!fs.existsSync(jsonPath)) {
-          fs.writeFileSync(jsonPath, JSON.stringify([]));
-        }
+      try {
+        dbInstance.exec(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user';`);
+      } catch (e) {
+        // Column already exists
       }
-      console.log('✅ Users database ready.');
-      resolve();
-    } catch (err) {
-      console.error('❌ Failed to initialize users database:', err);
-      reject(err);
+    } else {
+      const jsonPath = dbPath + '.json';
+      if (!fs.existsSync(jsonPath)) {
+        fs.writeFileSync(jsonPath, JSON.stringify([]));
+      }
     }
-  });
+
+    // Seed default Admin Account: admin@nexus.com / admin123
+    await seedAdminAccount();
+    console.log('✅ Database and Admin account initialized.');
+  } catch (err) {
+    console.error('❌ Failed to initialize users database:', err);
+    throw err;
+  }
+}
+
+// Seed Admin Account
+async function seedAdminAccount() {
+  const adminEmail = 'admin@nexus.com';
+  const existingAdmin = await findUserByEmail(adminEmail);
+
+  if (!existingAdmin) {
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    await createUser({
+      username: 'Nexus Admin',
+      email: adminEmail,
+      password: hashedPassword,
+      role: 'admin'
+    });
+    console.log('👑 Default Admin account created: admin@nexus.com / admin123');
+  }
 }
 
 // Find user by email
@@ -61,7 +78,7 @@ function findUserByEmail(email) {
   return new Promise((resolve, reject) => {
     try {
       if (dbInstance) {
-        const stmt = dbInstance.prepare('SELECT * FROM users WHERE email = ?');
+        const stmt = dbInstance.prepare('SELECT * FROM users WHERE LOWER(email) = LOWER(?)');
         const user = stmt.get(email);
         resolve(user || null);
       } else {

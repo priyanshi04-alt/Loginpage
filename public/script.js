@@ -2,7 +2,8 @@ const API_BASE = window.location.origin;
 
 // DOM Elements
 const authCard = document.getElementById('auth-card');
-const dashboardView = document.getElementById('dashboard-view');
+const userDashboardView = document.getElementById('user-dashboard-view');
+const adminDashboardView = document.getElementById('admin-dashboard-view');
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const btnLoginTab = document.getElementById('btn-login-tab');
@@ -145,7 +146,7 @@ async function onLoginSubmit(event) {
       localStorage.setItem('auth_token', data.token);
       showBanner('Welcome back! Redirecting...', 'success');
       setTimeout(() => {
-        renderDashboard(data.user);
+        renderRoleDashboard(data.user);
       }, 500);
     } else {
       showBanner(data.message || 'Invalid email or password.');
@@ -194,7 +195,7 @@ async function onRegisterSubmit(event) {
       localStorage.setItem('auth_token', data.token);
       showBanner('Account created successfully!', 'success');
       setTimeout(() => {
-        renderDashboard(data.user);
+        renderRoleDashboard(data.user);
       }, 500);
     } else {
       showBanner(data.message || 'Registration failed.');
@@ -219,7 +220,7 @@ async function checkExistingSession() {
     const data = await res.json();
 
     if (res.ok && data.success) {
-      renderDashboard(data.user);
+      renderRoleDashboard(data.user);
     } else {
       localStorage.removeItem('auth_token');
     }
@@ -228,18 +229,30 @@ async function checkExistingSession() {
   }
 }
 
-// Render Dashboard & Load Admin Panel
-function renderDashboard(user) {
+// Render Dashboard based on User Role (user vs admin)
+function renderRoleDashboard(user) {
   authCard.classList.add('hidden');
-  dashboardView.classList.remove('hidden');
-
-  const initials = user.username.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'US';
-  document.getElementById('avatar-initials').textContent = initials;
-  document.getElementById('dash-user-name').textContent = user.username;
-  document.getElementById('dash-user-email').textContent = user.email;
   hideBanner();
 
-  fetchAdminUsers();
+  const initials = user.username.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'US';
+
+  if (user.role === 'admin') {
+    userDashboardView.classList.add('hidden');
+    adminDashboardView.classList.remove('hidden');
+
+    document.getElementById('admin-avatar-initials').textContent = initials;
+    document.getElementById('admin-dash-name').textContent = user.username;
+    document.getElementById('admin-dash-email').textContent = user.email;
+
+    fetchAdminUsers();
+  } else {
+    adminDashboardView.classList.add('hidden');
+    userDashboardView.classList.remove('hidden');
+
+    document.getElementById('user-avatar-initials').textContent = initials;
+    document.getElementById('user-dash-name').textContent = user.username;
+    document.getElementById('user-dash-email').textContent = user.email;
+  }
 }
 
 // ==========================================
@@ -374,7 +387,8 @@ function escapeHtml(str) {
 // Logout
 function handleLogout() {
   localStorage.removeItem('auth_token');
-  dashboardView.classList.add('hidden');
+  userDashboardView.classList.add('hidden');
+  adminDashboardView.classList.add('hidden');
   authCard.classList.remove('hidden');
   switchAuthTab('login');
   showBanner('Signed out successfully.', 'success');
