@@ -26,16 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
   checkExistingSession();
 });
 
-// Theme Management (Light / Dark Mode)
+// Theme Management (Default Theme: Light)
 function initTheme() {
-  const savedTheme = localStorage.getItem('nexus_theme') || 'dark';
+  const savedTheme = localStorage.getItem('nexus_theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeIcon(savedTheme);
 }
 
 function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', newTheme);
   localStorage.setItem('nexus_theme', newTheme);
   updateThemeIcon(newTheme);
@@ -306,30 +306,26 @@ async function fetchAdminUsers() {
     if (res.ok && data.success) {
       renderUsersTable(data.users);
     } else {
-      usersTableBody.innerHTML = `<tr><td colspan="3" class="loading-td">Unable to load users.</td></tr>`;
+      usersTableBody.innerHTML = `<tr><td colspan="4" class="loading-td">Unable to load users.</td></tr>`;
     }
   } catch (err) {
     console.error('Fetch Admin Users Error:', err);
   }
 }
 
-// Render Users in Table
+// Render Users in Table with distinct Username and Email columns
 function renderUsersTable(users) {
   totalUserCount.textContent = `${users.length} ${users.length === 1 ? 'User' : 'Users'}`;
 
   if (!users || users.length === 0) {
-    usersTableBody.innerHTML = `<tr><td colspan="3" class="loading-td">No registered users found.</td></tr>`;
+    usersTableBody.innerHTML = `<tr><td colspan="4" class="loading-td">No registered users found.</td></tr>`;
     return;
   }
 
   usersTableBody.innerHTML = users.map(u => `
     <tr>
-      <td>
-        <div class="user-name-cell">
-          <span>${escapeHtml(u.username)}</span>
-          <span class="user-email-sub">${escapeHtml(u.email)}</span>
-        </div>
-      </td>
+      <td class="user-username-cell">${escapeHtml(u.username)}</td>
+      <td class="user-email-cell">${escapeHtml(u.email)}</td>
       <td>
         <span class="role-tag ${u.role || 'user'}">${escapeHtml(u.role || 'user')}</span>
       </td>

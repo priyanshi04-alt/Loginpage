@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,7 +27,7 @@
     <!-- Theme Toggle Button -->
     <div class="nav-actions">
       <button type="button" id="theme-toggle-btn" class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
-        <i id="theme-icon" class="fa-regular fa-sun"></i>
+        <i id="theme-icon" class="fa-regular fa-moon"></i>
       </button>
     </div>
   </header>
@@ -245,19 +245,20 @@
         </button>
       </div>
 
-      <!-- Full Width Users Table -->
+      <!-- Full Width Users Table with Separate Username and Email Columns -->
       <div class="table-container">
         <table class="users-table">
           <thead>
             <tr>
-              <th>User Details</th>
+              <th>Username</th>
+              <th>Email Address</th>
               <th>System Role</th>
               <th class="text-right">Action</th>
             </tr>
           </thead>
           <tbody id="users-table-body">
             <tr>
-              <td colspan="3" class="loading-td">Loading registered users...</td>
+              <td colspan="4" class="loading-td">Loading registered users...</td>
             </tr>
           </tbody>
         </table>
