@@ -1,6 +1,7 @@
 const API_BASE = window.location.origin;
 
 // DOM Elements
+const authContainer = document.getElementById('auth-container');
 const authCard = document.getElementById('auth-card');
 const userDashboardView = document.getElementById('user-dashboard-view');
 const adminDashboardView = document.getElementById('admin-dashboard-view');
@@ -16,15 +17,51 @@ const forgotModal = document.getElementById('forgot-modal');
 const addUserModal = document.getElementById('add-user-modal');
 const usersTableBody = document.getElementById('users-table-body');
 const totalUserCount = document.getElementById('total-user-count');
+const themeIcon = document.getElementById('theme-icon');
 
-// Check active session on load
+// Initialize Theme & Forms on Page Load
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  resetAuthForms();
   checkExistingSession();
 });
 
-// Switch Tab
+// Theme Management (Light / Dark Mode)
+function initTheme() {
+  const savedTheme = localStorage.getItem('nexus_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('nexus_theme', newTheme);
+  updateThemeIcon(newTheme);
+}
+
+function updateThemeIcon(theme) {
+  if (themeIcon) {
+    themeIcon.className = theme === 'dark' ? 'fa-regular fa-sun' : 'fa-regular fa-moon';
+  }
+}
+
+// Reset Inputs to ensure 100% clean blank form on load
+function resetAuthForms() {
+  if (loginForm) loginForm.reset();
+  if (registerForm) registerForm.reset();
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('reg-name').value = '';
+  document.getElementById('reg-email').value = '';
+  document.getElementById('reg-password').value = '';
+}
+
+// Switch Auth Tab
 function switchAuthTab(tab) {
   hideBanner();
+  resetAuthForms();
   if (tab === 'login') {
     btnLoginTab.classList.add('active');
     btnRegTab.classList.remove('active');
@@ -229,9 +266,9 @@ async function checkExistingSession() {
   }
 }
 
-// Render Dashboard based on User Role (user vs admin)
+// Render Dashboard based on User Role
 function renderRoleDashboard(user) {
-  authCard.classList.add('hidden');
+  authContainer.classList.add('hidden');
   hideBanner();
 
   const initials = user.username.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'US';
@@ -254,10 +291,6 @@ function renderRoleDashboard(user) {
     document.getElementById('user-dash-email').textContent = user.email;
   }
 }
-
-// ==========================================
-// ADMIN PANEL FRONTEND LOGIC
-// ==========================================
 
 // Fetch Admin Users List
 async function fetchAdminUsers() {
@@ -300,7 +333,7 @@ function renderUsersTable(users) {
       <td>
         <span class="role-tag ${u.role || 'user'}">${escapeHtml(u.role || 'user')}</span>
       </td>
-      <td>
+      <td class="text-right">
         <button type="button" class="btn-delete-user" onclick="handleDeleteUser(${u.id})" title="Remove User">
           <i class="fa-regular fa-trash-can"></i> Remove
         </button>
@@ -389,7 +422,8 @@ function handleLogout() {
   localStorage.removeItem('auth_token');
   userDashboardView.classList.add('hidden');
   adminDashboardView.classList.add('hidden');
-  authCard.classList.remove('hidden');
+  authContainer.classList.remove('hidden');
   switchAuthTab('login');
+  resetAuthForms();
   showBanner('Signed out successfully.', 'success');
 }

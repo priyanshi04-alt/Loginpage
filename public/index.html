@@ -1,23 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign in to Nexus</title>
+  <title>Nexus Platform</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-  <div class="glow-bg"></div>
-
-  <main class="app-wrapper">
-    <!-- Brand Logo -->
-    <div class="brand">
+  <!-- Top Global Bar -->
+  <header class="top-nav">
+    <div class="nav-brand">
       <div class="brand-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -26,238 +24,296 @@
       <span class="brand-name">nexus</span>
     </div>
 
-    <!-- Auth Card (Login / Register) -->
-    <div id="auth-card" class="auth-card">
-      <div class="card-header">
-        <h1 id="form-title">Welcome back</h1>
-        <p id="form-subtitle">Enter your credentials to access your workspace</p>
+    <!-- Theme Toggle Button -->
+    <div class="nav-actions">
+      <button type="button" id="theme-toggle-btn" class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+        <i id="theme-icon" class="fa-regular fa-sun"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Split Screen Auth Container -->
+  <div id="auth-container" class="split-screen-container">
+    <!-- Left Hero Showcase (Desktop) -->
+    <div class="hero-showcase">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <i class="fa-solid fa-sparkles"></i> Next-Gen Workspace Platform
+        </div>
+        <h1 class="hero-title">Empower your team with unified collaboration.</h1>
+        <p class="hero-desc">Access secure workspaces, real-time analytics, and enterprise user management in one seamless experience.</p>
+        
+        <div class="hero-features">
+          <div class="feature-item">
+            <div class="feat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+              <h4>Enterprise Security</h4>
+              <p>End-to-end encryption & session protection.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feat-icon"><i class="fa-solid fa-bolt"></i></div>
+            <div>
+              <h4>High Performance</h4>
+              <p>Sub-millisecond data synchronization.</p>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <!-- Segmented Tab Bar -->
-      <div class="segmented-control">
-        <button id="btn-login-tab" class="segment-btn active" onclick="switchAuthTab('login')">Sign In</button>
-        <button id="btn-reg-tab" class="segment-btn" onclick="switchAuthTab('register')">Sign Up</button>
-      </div>
-
-      <!-- Alert Notification Banner -->
-      <div id="alert-banner" class="alert-banner hidden">
-        <span id="alert-text"></span>
-      </div>
-
-      <!-- LOGIN FORM -->
-      <form id="login-form" class="form-body" onsubmit="onLoginSubmit(event)" novalidate>
-        <div class="field-group">
-          <label for="login-email">Email Address</label>
-          <input type="email" id="login-email" placeholder="name@example.com" required autocomplete="email">
-        </div>
-
-        <div class="field-group">
-          <div class="label-row">
-            <label for="login-password">Password</label>
-            <a href="#" class="forgot-link" onclick="openForgotModal(event)">Forgot password?</a>
-          </div>
-          <div class="input-container">
-            <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
-            <button type="button" class="eye-toggle" onclick="togglePassVisibility('login-password', this)">
-              <i class="fa-regular fa-eye"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="remember-row">
-          <label class="custom-checkbox">
-            <input type="checkbox" id="remember-me" checked>
-            <span class="checkmark"></span>
-            <span>Remember me for 30 days</span>
-          </label>
-        </div>
-
-        <button type="submit" id="login-submit-btn" class="primary-btn">
-          <span>Sign in</span>
-          <i class="fa-solid fa-arrow-right text-xs"></i>
-        </button>
-      </form>
-
-      <!-- REGISTER FORM -->
-      <form id="register-form" class="form-body hidden" onsubmit="onRegisterSubmit(event)" novalidate>
-        <div class="field-group">
-          <label for="reg-name">Full Name</label>
-          <input type="text" id="reg-name" placeholder="Alex Morgan" required autocomplete="name">
-        </div>
-
-        <div class="field-group">
-          <label for="reg-email">Email Address</label>
-          <input type="email" id="reg-email" placeholder="name@example.com" required autocomplete="email">
-        </div>
-
-        <div class="field-group">
-          <label for="reg-password">Password</label>
-          <div class="input-container">
-            <input type="password" id="reg-password" placeholder="At least 6 characters" required autocomplete="new-password" oninput="checkPasswordStrength(this.value)">
-            <button type="button" class="eye-toggle" onclick="togglePassVisibility('reg-password', this)">
-              <i class="fa-regular fa-eye"></i>
-            </button>
-          </div>
-          <!-- Strength Meter Bar -->
-          <div class="strength-meter">
-            <div id="strength-bar" class="strength-bar"></div>
-          </div>
-          <span id="strength-label" class="strength-label"></span>
-        </div>
-
-        <button type="submit" id="reg-submit-btn" class="primary-btn">
-          <span>Create account</span>
-          <i class="fa-solid fa-user-plus text-xs"></i>
-        </button>
-
-        <p class="terms-text">
-          By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
-        </p>
-      </form>
     </div>
 
-    <!-- NORMAL USER PLATFORM DASHBOARD -->
-    <div id="user-dashboard-view" class="auth-card hidden">
-      <div class="user-profile-header">
+    <!-- Right Form Section -->
+    <div class="auth-form-wrapper">
+      <div id="auth-card" class="auth-card">
+        <div class="card-header">
+          <h2 id="form-title">Welcome back</h2>
+          <p id="form-subtitle">Enter your credentials to access your account</p>
+        </div>
+
+        <!-- Segmented Tab Bar -->
+        <div class="segmented-control">
+          <button id="btn-login-tab" class="segment-btn active" onclick="switchAuthTab('login')">Sign In</button>
+          <button id="btn-reg-tab" class="segment-btn" onclick="switchAuthTab('register')">Sign Up</button>
+        </div>
+
+        <!-- Alert Banner -->
+        <div id="alert-banner" class="alert-banner hidden">
+          <span id="alert-text"></span>
+        </div>
+
+        <!-- LOGIN FORM (Empty inputs by default) -->
+        <form id="login-form" class="form-body" onsubmit="onLoginSubmit(event)" autocomplete="off" novalidate>
+          <div class="field-group">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" placeholder="name@example.com" required autocomplete="off" value="">
+          </div>
+
+          <div class="field-group">
+            <div class="label-row">
+              <label for="login-password">Password</label>
+              <a href="#" class="forgot-link" onclick="openForgotModal(event)">Forgot password?</a>
+            </div>
+            <div class="input-container">
+              <input type="password" id="login-password" placeholder="••••••••" required autocomplete="off" value="">
+              <button type="button" class="eye-toggle" onclick="togglePassVisibility('login-password', this)">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="remember-row">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="remember-me" checked>
+              <span class="checkmark"></span>
+              <span>Remember me for 30 days</span>
+            </label>
+          </div>
+
+          <button type="submit" id="login-submit-btn" class="primary-btn">
+            <span>Sign in</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form id="register-form" class="form-body hidden" onsubmit="onRegisterSubmit(event)" autocomplete="off" novalidate>
+          <div class="field-group">
+            <label for="reg-name">Full Name</label>
+            <input type="text" id="reg-name" placeholder="Alex Morgan" required autocomplete="off" value="">
+          </div>
+
+          <div class="field-group">
+            <label for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" placeholder="name@example.com" required autocomplete="off" value="">
+          </div>
+
+          <div class="field-group">
+            <label for="reg-password">Password</label>
+            <div class="input-container">
+              <input type="password" id="reg-password" placeholder="At least 6 characters" required autocomplete="off" value="" oninput="checkPasswordStrength(this.value)">
+              <button type="button" class="eye-toggle" onclick="togglePassVisibility('reg-password', this)">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+            <div class="strength-meter">
+              <div id="strength-bar" class="strength-bar"></div>
+            </div>
+            <span id="strength-label" class="strength-label"></span>
+          </div>
+
+          <button type="submit" id="reg-submit-btn" class="primary-btn">
+            <span>Create account</span>
+            <i class="fa-solid fa-user-plus text-xs"></i>
+          </button>
+
+          <p class="terms-text">
+            By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+          </p>
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <footer class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <span>•</span>
+        <a href="#">Terms of Service</a>
+        <span>•</span>
+        <a href="#">Help Center</a>
+      </footer>
+    </div>
+  </div>
+
+  <!-- FULL-WIDTH USER PLATFORM DASHBOARD -->
+  <div id="user-dashboard-view" class="full-dashboard-wrapper hidden">
+    <div class="dashboard-header-bar">
+      <div class="user-profile-header border-none p-0 m-0">
         <div class="avatar-large" id="user-avatar-initials">US</div>
         <div class="user-info">
           <h2 id="user-dash-name">User Name</h2>
           <p id="user-dash-email">user@example.com</p>
           <span class="status-pill"><span class="dot"></span> Active Member</span>
         </div>
-        <button type="button" class="logout-link-btn" onclick="handleLogout()" title="Sign Out">
-          <i class="fa-solid fa-right-from-bracket"></i>
-        </button>
       </div>
+      <button type="button" class="secondary-btn-logout" onclick="handleLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+      </button>
+    </div>
 
-      <!-- Platform Workspace Overview -->
-      <div class="platform-workspace-section">
-        <div class="workspace-card">
-          <div class="ws-header">
-            <i class="fa-solid fa-layer-group text-indigo-400"></i>
-            <span>Nexus Cloud Platform</span>
-          </div>
-          <p class="ws-desc">Your team workspace is active and synchronized.</p>
-        </div>
-
-        <div class="platform-quick-actions mt-3">
-          <button type="button" class="action-tile" onclick="alert('Workspace Launched!')">
-            <i class="fa-solid fa-[#6366f1] fa-rocket"></i>
-            <span>Launch Workspace</span>
-          </button>
-          <button type="button" class="action-tile" onclick="alert('Settings opened.')">
-            <i class="fa-solid fa-gear"></i>
-            <span>Account Settings</span>
-          </button>
-        </div>
+    <!-- Platform Stats & Actions Grid -->
+    <div class="stats-grid mt-4">
+      <div class="stat-card">
+        <span class="stat-label">Workspace Status</span>
+        <span class="stat-val text-emerald-400"><i class="fa-solid fa-circle-check"></i> Synchronized</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Account Tier</span>
+        <span class="stat-val">Starter Member</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Security</span>
+        <span class="stat-val text-emerald-400">Encrypted</span>
       </div>
     </div>
 
-    <!-- DEDICATED ADMIN CONSOLE DASHBOARD -->
-    <div id="admin-dashboard-view" class="auth-card dashboard-card hidden">
-      <div class="user-profile-header">
+    <div class="platform-workspace-section mt-4">
+      <div class="workspace-card">
+        <div class="ws-header">
+          <i class="fa-solid fa-layer-group text-indigo-500"></i>
+          <span>Nexus Cloud Platform Workspace</span>
+        </div>
+        <p class="ws-desc">Your team environment is online. All projects and active services are operational.</p>
+      </div>
+
+      <div class="platform-quick-actions mt-3">
+        <button type="button" class="action-tile" onclick="alert('Workspace Launched!')">
+          <i class="fa-solid fa-rocket text-indigo-500 text-xl"></i>
+          <span>Launch Workspace</span>
+        </button>
+        <button type="button" class="action-tile" onclick="alert('Account Settings opened.')">
+          <i class="fa-solid fa-gear text-indigo-500 text-xl"></i>
+          <span>Account Settings</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL-WIDTH ADMIN CONSOLE DASHBOARD -->
+  <div id="admin-dashboard-view" class="full-dashboard-wrapper hidden">
+    <div class="dashboard-header-bar">
+      <div class="user-profile-header border-none p-0 m-0">
         <div class="avatar-large admin-avatar" id="admin-avatar-initials">AD</div>
         <div class="user-info">
           <h2 id="admin-dash-name">Nexus Admin</h2>
           <p id="admin-dash-email">admin@nexus.com</p>
           <span class="status-pill admin-pill"><span class="dot"></span> SYSTEM ADMIN</span>
         </div>
-        <button type="button" class="logout-link-btn" onclick="handleLogout()" title="Sign Out">
-          <i class="fa-solid fa-right-from-bracket"></i>
+      </div>
+      <button type="button" class="secondary-btn-logout" onclick="handleLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+      </button>
+    </div>
+
+    <!-- Admin Panel Section -->
+    <div class="admin-panel-section mt-4">
+      <div class="admin-header">
+        <div class="admin-title">
+          <h3><i class="fa-solid fa-users-gear text-indigo-500"></i> User Management Console</h3>
+          <span class="badge-count" id="total-user-count">0 Users</span>
+        </div>
+        <button type="button" class="btn-add-user" onclick="openAddUserModal()">
+          <i class="fa-solid fa-plus text-xs"></i> Add User
         </button>
       </div>
 
-      <!-- Admin Management Console -->
-      <div class="admin-panel-section">
-        <div class="admin-header">
-          <div class="admin-title">
-            <h3><i class="fa-solid fa-users-gear text-indigo-400"></i> Registered Users</h3>
-            <span class="badge-count" id="total-user-count">0 Users</span>
-          </div>
-          <button type="button" class="btn-add-user" onclick="openAddUserModal()">
-            <i class="fa-solid fa-plus text-xs"></i> Add User
-          </button>
-        </div>
-
-        <!-- Registered Users Table -->
-        <div class="table-container">
-          <table class="users-table">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="users-table-body">
-              <tr>
-                <td colspan="3" class="loading-td">Loading registered users...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <!-- Full Width Users Table -->
+      <div class="table-container">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>User Details</th>
+              <th>System Role</th>
+              <th class="text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="users-table-body">
+            <tr>
+              <td colspan="3" class="loading-td">Loading registered users...</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
+  </div>
 
-    <!-- ADD USER MODAL -->
-    <div id="add-user-modal" class="modal-overlay hidden">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>Add New User</h3>
-          <button class="close-modal" onclick="closeAddUserModal()">&times;</button>
-        </div>
-        <form onsubmit="handleAdminAddUser(event)" class="form-body mt-3">
-          <div class="field-group">
-            <label for="admin-add-name">Full Name</label>
-            <input type="text" id="admin-add-name" placeholder="Full Name" required>
-          </div>
-          <div class="field-group">
-            <label for="admin-add-email">Email Address</label>
-            <input type="email" id="admin-add-email" placeholder="email@example.com" required>
-          </div>
-          <div class="field-group">
-            <label for="admin-add-password">Password</label>
-            <input type="password" id="admin-add-password" placeholder="Password (min 6 chars)" required minlength="6">
-          </div>
-          <div class="field-group">
-            <label for="admin-add-role">Role</label>
-            <select id="admin-add-role" class="select-input">
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <button type="submit" class="primary-btn mt-2">Create User</button>
-        </form>
+  <!-- ADD USER MODAL -->
+  <div id="add-user-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add New User</h3>
+        <button class="close-modal" onclick="closeAddUserModal()">&times;</button>
       </div>
-    </div>
-
-    <!-- FORGOT PASSWORD MODAL -->
-    <div id="forgot-modal" class="modal-overlay hidden">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>Reset Password</h3>
-          <button class="close-modal" onclick="closeForgotModal()">&times;</button>
+      <form onsubmit="handleAdminAddUser(event)" class="form-body mt-3" autocomplete="off">
+        <div class="field-group">
+          <label for="admin-add-name">Full Name</label>
+          <input type="text" id="admin-add-name" placeholder="Full Name" required autocomplete="off">
         </div>
-        <p class="modal-desc">Enter your email address and we'll send you a link to reset your password.</p>
-        <form onsubmit="handleResetRequest(event)">
-          <div class="field-group">
-            <label for="reset-email">Email Address</label>
-            <input type="email" id="reset-email" placeholder="name@example.com" required>
-          </div>
-          <button type="submit" class="primary-btn mt-4">Send Reset Link</button>
-        </form>
-      </div>
+        <div class="field-group">
+          <label for="admin-add-email">Email Address</label>
+          <input type="email" id="admin-add-email" placeholder="email@example.com" required autocomplete="off">
+        </div>
+        <div class="field-group">
+          <label for="admin-add-password">Password</label>
+          <input type="password" id="admin-add-password" placeholder="Password (min 6 chars)" required minlength="6" autocomplete="off">
+        </div>
+        <div class="field-group">
+          <label for="admin-add-role">Role</label>
+          <select id="admin-add-role" class="select-input">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <button type="submit" class="primary-btn mt-2">Create User</button>
+      </form>
     </div>
+  </div>
 
-    <!-- Footer -->
-    <footer class="footer-links">
-      <a href="#">Privacy Policy</a>
-      <span>•</span>
-      <a href="#">Terms of Service</a>
-      <span>•</span>
-      <a href="#">Help Center</a>
-    </footer>
-  </main>
+  <!-- FORGOT PASSWORD MODAL -->
+  <div id="forgot-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Reset Password</h3>
+        <button class="close-modal" onclick="closeForgotModal()">&times;</button>
+      </div>
+      <p class="modal-desc">Enter your email address and we'll send you a link to reset your password.</p>
+      <form onsubmit="handleResetRequest(event)" autocomplete="off">
+        <div class="field-group">
+          <label for="reset-email">Email Address</label>
+          <input type="email" id="reset-email" placeholder="name@example.com" required autocomplete="off">
+        </div>
+        <button type="submit" class="primary-btn mt-4">Send Reset Link</button>
+      </form>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
