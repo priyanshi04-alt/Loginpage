@@ -4,7 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { initDB, findUserByEmail, findUserById, createUser } = require('./db');
+const { initDB, findUserByEmail, findUserById, createUser, getAllUsers, deleteUserById } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,7 +45,7 @@ function authenticateToken(req, res, next) {
 // User Registration Route
 app.post('/api/register', async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, role } = req.body;
 
     if (!username || !email || !password) {
       return res.status(400).json({ success: false, message: 'All fields are required.' });
@@ -61,14 +61,14 @@ app.post('/api/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await createUser({ username, email, password: hashedPassword });
+    const newUser = await createUser({ username, email, password: hashedPassword, role: role || 'user' });
 
-    const token = jwt.sign({ id: newUser.id, email: newUser.email }, JWT_SECRET, { expiresIn: '30d' });
+    const token = jwt.sign({ id: newUser.id, email: newUser.email, role: newUser.role }, JWT_SECRET, { expiresIn: '30d' });
 
     res.status(201).json({
       success: true,
       message: 'Account created successfully!',
-      user: { id: newUser.id, username: newUser.username, email: newUser.email },
+      user: { id: newUser.id, username: newUser.username, email: newUser.email, role: newUser.role },
       token
     });
   } catch (error) {
@@ -96,14 +96,13 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
-    // Set token expiration: 30 days if rememberMe is checked, otherwise 24 hours
     const expiresIn = rememberMe ? '30d' : '24h';
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role || 'user' }, JWT_SECRET, { expiresIn });
 
     res.status(200).json({
       success: true,
       message: 'Login successful!',
-      user: { id: user.id, username: user.username, email: user.email },
+      user: { id: user.id, username: user.username, email: user.email, role: user.role || 'user' },
       token,
       expiresIn
     });
@@ -123,6 +122,61 @@ app.get('/api/me', authenticateToken, async (req, res) => {
     res.status(200).json({ success: true, user });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error fetching user profile.' });
+  }
+});
+
+// ==========================================
+// ADMIN PANEL API ENDPOINTS
+// ==========================================
+
+// GET /api/admin/users - Fetch all registered users
+app.get('/api/admin/users', authenticateToken, async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.status(200).json({ success: true, users });
+  } catch (error) {
+    console.error('Admin Fetch Users Error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching user list.' });
+  }
+});
+
+// POST /api/admin/users - Admin Add New User
+app.post('/api/admin/users', authenticateToken, async (req, res) => {
+  try {
+    const { username, email, password, role } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Username, email, and password are required.' });
+    }
+
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: 'User with this email already exists.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await createUser({ username, email, password: hashedPassword, role: role || 'user' });
+
+    res.status(201).json({ success: true, message: 'User added successfully', user: newUser });
+  } catch (error) {
+    console.error('Admin Add User Error:', error);
+    res.status(500).json({ success: false, message: 'Error adding user.' });
+  }
+});
+
+// DELETE /api/admin/users/:id - Admin Delete User
+app.delete('/api/admin/users/:id', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'User ID is required.' });
+    }
+
+    await deleteUserById(userId);
+    res.status(200).json({ success: true, message: 'User deleted successfully.' });
+  } catch (error) {
+    console.error('Admin Delete User Error:', error);
+    res.status(500).json({ success: false, message: 'Error deleting user.' });
   }
 });
 

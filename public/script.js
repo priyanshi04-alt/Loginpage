@@ -12,6 +12,9 @@ const formSubtitle = document.getElementById('form-subtitle');
 const alertBanner = document.getElementById('alert-banner');
 const alertText = document.getElementById('alert-text');
 const forgotModal = document.getElementById('forgot-modal');
+const addUserModal = document.getElementById('add-user-modal');
+const usersTableBody = document.getElementById('users-table-body');
+const totalUserCount = document.getElementById('total-user-count');
 
 // Check active session on load
 document.addEventListener('DOMContentLoaded', () => {
@@ -27,7 +30,7 @@ function switchAuthTab(tab) {
     loginForm.classList.remove('hidden');
     registerForm.classList.add('hidden');
     formTitle.textContent = 'Welcome back';
-    formSubtitle.textContent = 'Enter your details to access your workspace';
+    formSubtitle.textContent = 'Enter your credentials to access your account';
   } else {
     btnRegTab.classList.add('active');
     btnLoginTab.classList.remove('active');
@@ -143,7 +146,7 @@ async function onLoginSubmit(event) {
       showBanner('Welcome back! Redirecting...', 'success');
       setTimeout(() => {
         renderDashboard(data.user);
-      }, 600);
+      }, 500);
     } else {
       showBanner(data.message || 'Invalid email or password.');
     }
@@ -151,7 +154,7 @@ async function onLoginSubmit(event) {
     showBanner('Unable to connect to server.');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.innerHTML = '<span>Sign in to account</span><i class="fa-solid fa-arrow-right text-xs"></i>';
+    submitBtn.innerHTML = '<span>Sign in</span><i class="fa-solid fa-arrow-right text-xs"></i>';
   }
 }
 
@@ -192,7 +195,7 @@ async function onRegisterSubmit(event) {
       showBanner('Account created successfully!', 'success');
       setTimeout(() => {
         renderDashboard(data.user);
-      }, 600);
+      }, 500);
     } else {
       showBanner(data.message || 'Registration failed.');
     }
@@ -225,7 +228,7 @@ async function checkExistingSession() {
   }
 }
 
-// Render Dashboard
+// Render Dashboard & Load Admin Panel
 function renderDashboard(user) {
   authCard.classList.add('hidden');
   dashboardView.classList.remove('hidden');
@@ -235,6 +238,137 @@ function renderDashboard(user) {
   document.getElementById('dash-user-name').textContent = user.username;
   document.getElementById('dash-user-email').textContent = user.email;
   hideBanner();
+
+  fetchAdminUsers();
+}
+
+// ==========================================
+// ADMIN PANEL FRONTEND LOGIC
+// ==========================================
+
+// Fetch Admin Users List
+async function fetchAdminUsers() {
+  const token = localStorage.getItem('auth_token');
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/users`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      renderUsersTable(data.users);
+    } else {
+      usersTableBody.innerHTML = `<tr><td colspan="3" class="loading-td">Unable to load users.</td></tr>`;
+    }
+  } catch (err) {
+    console.error('Fetch Admin Users Error:', err);
+  }
+}
+
+// Render Users in Table
+function renderUsersTable(users) {
+  totalUserCount.textContent = `${users.length} ${users.length === 1 ? 'User' : 'Users'}`;
+
+  if (!users || users.length === 0) {
+    usersTableBody.innerHTML = `<tr><td colspan="3" class="loading-td">No registered users found.</td></tr>`;
+    return;
+  }
+
+  usersTableBody.innerHTML = users.map(u => `
+    <tr>
+      <td>
+        <div class="user-name-cell">
+          <span>${escapeHtml(u.username)}</span>
+          <span class="user-email-sub">${escapeHtml(u.email)}</span>
+        </div>
+      </td>
+      <td>
+        <span class="role-tag ${u.role || 'user'}">${escapeHtml(u.role || 'user')}</span>
+      </td>
+      <td>
+        <button type="button" class="btn-delete-user" onclick="handleDeleteUser(${u.id})" title="Remove User">
+          <i class="fa-regular fa-trash-can"></i> Remove
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Delete User Action
+async function handleDeleteUser(userId) {
+  if (!confirm('Are you sure you want to remove this user from database?')) return;
+
+  const token = localStorage.getItem('auth_token');
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      fetchAdminUsers();
+    } else {
+      alert(data.message || 'Error deleting user.');
+    }
+  } catch (err) {
+    alert('Server error while deleting user.');
+  }
+}
+
+// Add User Modal Handlers
+function openAddUserModal() {
+  addUserModal.classList.remove('hidden');
+}
+
+function closeAddUserModal() {
+  addUserModal.classList.add('hidden');
+}
+
+async function handleAdminAddUser(e) {
+  e.preventDefault();
+  const username = document.getElementById('admin-add-name').value.trim();
+  const email = document.getElementById('admin-add-email').value.trim();
+  const password = document.getElementById('admin-add-password').value;
+  const role = document.getElementById('admin-add-role').value;
+  const token = localStorage.getItem('auth_token');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ username, email, password, role })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      closeAddUserModal();
+      document.getElementById('admin-add-name').value = '';
+      document.getElementById('admin-add-email').value = '';
+      document.getElementById('admin-add-password').value = '';
+      fetchAdminUsers();
+    } else {
+      alert(data.message || 'Failed to add user.');
+    }
+  } catch (err) {
+    alert('Server error while adding user.');
+  }
+}
+
+// Utility: Escape HTML
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // Logout

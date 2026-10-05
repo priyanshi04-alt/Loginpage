@@ -116,8 +116,8 @@
       </form>
     </div>
 
-    <!-- LOGGED-IN DASHBOARD VIEW -->
-    <div id="dashboard-view" class="auth-card hidden">
+    <!-- LOGGED-IN DASHBOARD VIEW WITH ADMIN PANEL -->
+    <div id="dashboard-view" class="auth-card dashboard-card hidden">
       <div class="user-profile-header">
         <div class="avatar-large" id="avatar-initials">US</div>
         <div class="user-info">
@@ -125,23 +125,73 @@
           <p id="dash-user-email">user@example.com</p>
           <span class="status-pill"><span class="dot"></span> Signed In</span>
         </div>
+        <button type="button" class="logout-link-btn" onclick="handleLogout()" title="Sign Out">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
       </div>
 
-      <div class="dashboard-details">
-        <div class="info-card">
-          <span class="info-title">Account Status</span>
-          <span class="info-val text-emerald-400">Active</span>
+      <!-- Admin Panel Section -->
+      <div class="admin-panel-section">
+        <div class="admin-header">
+          <div class="admin-title">
+            <h3><i class="fa-solid fa-users-gear text-indigo-400"></i> Admin Console</h3>
+            <span class="badge-count" id="total-user-count">0 Users</span>
+          </div>
+          <button type="button" class="btn-add-user" onclick="openAddUserModal()">
+            <i class="fa-solid fa-plus text-xs"></i> Add User
+          </button>
         </div>
-        <div class="info-card">
-          <span class="info-title">Security Status</span>
-          <span class="info-val text-emerald-400">Verified</span>
+
+        <!-- Registered Users Table -->
+        <div class="table-container">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body">
+              <tr>
+                <td colspan="3" class="loading-td">Loading registered users...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
+    </div>
 
-      <button type="button" class="secondary-btn" onclick="handleLogout()">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-        <span>Sign Out</span>
-      </button>
+    <!-- ADD USER MODAL -->
+    <div id="add-user-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Add New User</h3>
+          <button class="close-modal" onclick="closeAddUserModal()">&times;</button>
+        </div>
+        <form onsubmit="handleAdminAddUser(event)" class="form-body mt-3">
+          <div class="field-group">
+            <label for="admin-add-name">Full Name</label>
+            <input type="text" id="admin-add-name" placeholder="Full Name" required>
+          </div>
+          <div class="field-group">
+            <label for="admin-add-email">Email Address</label>
+            <input type="email" id="admin-add-email" placeholder="email@example.com" required>
+          </div>
+          <div class="field-group">
+            <label for="admin-add-password">Password</label>
+            <input type="password" id="admin-add-password" placeholder="Password (min 6 chars)" required minlength="6">
+          </div>
+          <div class="field-group">
+            <label for="admin-add-role">Role</label>
+            <select id="admin-add-role" class="select-input">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button type="submit" class="primary-btn mt-2">Create User</button>
+        </form>
+      </div>
     </div>
 
     <!-- FORGOT PASSWORD MODAL -->
